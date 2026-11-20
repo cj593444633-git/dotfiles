@@ -1,0 +1,3 @@
+# 本机敏感产物（含 proxy 订阅/节点凭据），绝不入库
+mihomo-bundle*
+*.tar.gz
