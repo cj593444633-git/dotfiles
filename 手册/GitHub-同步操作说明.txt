@@ -1,0 +1,252 @@
+把本机配置目录同步到 GitHub 仓库：完整操作说明
+
+  本文记录的是 2026-11-20 在本机（Arch + Hyprland + mihomo TUN 代理）实际跑通的全过程， 不是通用教程。命令、报错、结论都来自现场；没验证过的会明确标注"未验"。
+
+  本次同步对象：/run/media/chen/Ventoy/arch-hyprland-newmachine/ → https://github.com/cj593444633-git/dotfiles （public，51 个文件，commit 25255b6）
+
+------------------------------------------------------------------------
+
+0. 一张流程图
+
+    装 gh  →  登录（token）  →  git 用 gh 的凭证  →  排除敏感文件
+                                                            ↓
+                           校验远端 sha/文件数  ←  push  ←  commit（noreply 邮箱）
+
+五个坑，按踩到的顺序排在文末第 8 节，先扫一眼那张表能省半小时。
+
+------------------------------------------------------------------------
+
+1. 安装 GitHub CLI
+
+Arch 上的包名叫 github-cli，命令叫 gh。直接 pacman -S gh 会失败：
+
+    $ sudo pacman -S gh
+    错误：未找到目标：gh
+
+    $ pacman -Ss github-cli
+    extra/github-cli 2.105.0-1
+        The GitHub CLI
+
+正确做法：
+
+    sudo pacman -S --noconfirm github-cli
+    gh --version
+    # gh version 2.105.0 (2026-11-18)
+    # https://github.com/cli/cli/releases/tag/v2.105.0
+
+装完的可选依赖里，这两个本机已有、也确实用得上： git（操作仓库）、org.freedesktop.secrets（令牌存系统密钥环）。
+
+其他发行版对照：
+
+  系统              命令
+  ----------------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  Debian/Ubuntu     官方源版本旧，建议 gh 官方 apt 仓库：curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 之后 sudo apt install gh
+  Fedora/RHEL       sudo dnf install gh
+  通用（无 root）   下载 release 的 gh_*_linux_amd64.tar.gz 解压到 ~/.local/bin——本机访问 GitHub release 资源会超时，死磕不如用包管理器
+
+------------------------------------------------------------------------
+
+2. 登录并让 git 复用这个令牌
+
+2.1 选 HTTPS，别选 SSH（原因见坑 2）
+
+    gh auth login
+    # ? What account do you want to log into?        GitHub.com
+    # ? What is your preferred protocol for Git operations?  HTTPS
+    # ? Authenticate Git with your GitHub credentials?  Yes
+    # ? How would you like to authenticate?          Login with a web browser
+
+浏览器里输入 8 位设备码即可，不需要手打密码（助手也不会代填）。
+
+已有 PAT 的话非交互：
+
+    echo "$GH_TOKEN_PLAINTEXT" | gh auth login --with-token
+    # 令牌需要 repo 权限；要改仓库可见性再加 admin 相关 scope
+
+2.2 验证
+
+    $ gh auth status
+    github.com
+      ✓ Logged in to github.com account cj593444633-git (/home/chen/.config/gh/hosts.yml)
+      - Git operations protocol: ssh        # ← 这里写 ssh，说明当初选的是 ssh
+      - Token scopes: 'admin:public_key', 'gist', 'read:org', 'repo'
+
+    $ gh api user -q .login
+    cj593444633-git
+
+2.3 关键一步：把令牌交给 git
+
+    gh auth setup-git
+
+它会在 ~/.gitconfig 里写 credential."https://github.com".helper = !gh auth git-credential。 不做这步，git push 走 HTTPS 时会去问用户名密码，非交互环境直接卡死。 做完之后 git push 静默成功，不再输密码。
+
+（本机另有 ~/.git-credentials + credential.helper=store，是 11-20 14:32 建的，两者可共存，gh 的 per-host helper 优先级更高。）
+
+------------------------------------------------------------------------
+
+3. 准备仓库
+
+仓库可以先用网页/gh 建，也可以先有本地目录：
+
+    # 方式 A：远端已有（本次情况，空仓库）
+    gh repo view cj593444633-git/dotfiles --json name,visibility,defaultBranchRef
+    # {"defaultBranchRef":{"name":""},"name":"dotfiles","visibility":"PUBLIC"}   ← name 为空 = 空仓库
+
+    # 方式 B：从零建
+    gh repo create dotfiles --public --source=. --remote=origin
+
+注意 public/private 直接决定第 4 节要不要做。本次是 public，所以必须排除凭据。
+
+------------------------------------------------------------------------
+
+4. 先把"绝不能入库"的东西挡在门外
+
+源目录里有一个 7.2 MB 的 mihomo-bundle-20261120.tar.gz，解开就是：
+
+    bundle/etc-mihomo/config.yaml    ← 机场订阅的全部节点：vmess uuid、trojan/ss password
+    bundle/etc-mihomo/api-secret     ← mihomo 控制接口密钥
+
+而这个仓库是 public。推上去等于把付费机场凭据和本机代理控制密码公开、并被搜索引擎索引。 项目自己的手册（dotfiles/docs/新机安装手册.md）也写明：
+
+  /etc/mihomo 里是订阅地址、节点、api-secret，属于机器相关+敏感，按仓库策略不进 git。
+
+所以第一步是写 .gitignore，而不是先 git add -A：
+
+    cd /run/media/chen/Ventoy/arch-hyprland-newmachine/
+    cat > .gitignore <<'EOF'
+    # 本机敏感产物（含 proxy 订阅/节点凭据），绝不入库
+    mihomo-bundle*
+    *.tar.gz
+    EOF
+
+已经 add 进去过的，光写 .gitignore 不够——.gitignore 只影响未跟踪文件：
+
+    git rm --cached mihomo-bundle-20261120.tar.gz
+
+顺带一个自检，凡是准备公开的目录都跑一遍：
+
+    grep -rInE 'gho_|ghp_|github_pat_|BEGIN [A-Z ]*PRIVATE KEY|api-secret|password: *[^ ]{6,}' \
+         --exclude-dir=.git --exclude=*.tar.gz .
+
+本机结果：dotfiles 里没有真实值，命中的全是文档里"api-secret 属于敏感"这类说明文字，可以放行。 （udisks-automount.py、wifi-menu.sh 里的 password 是变量名/提示语，非明文。）
+
+------------------------------------------------------------------------
+
+5. 修 remote（本次的坏配置）
+
+原 remote 是残缺 URL，git push 会直接怼到 https://github.com 根路径：
+
+    $ git remote -v
+    origin  https://github.com (fetch)
+    origin  https://github.com (push)
+
+修正：
+
+    git remote set-url origin https://github.com/cj593444633-git/dotfiles.git
+    git remote -v      # 确认带上 <user>/<repo>.git
+
+------------------------------------------------------------------------
+
+6. commit 会因"邮箱隐私"被拒（GH007）
+
+第一次 push 的真实报错：
+
+    remote: error: GH007: Your push would publish a private email address.
+    remote: You can make your email public or disable this protection by visiting:
+    remote:        https://github.com/settings/emails
+     ! [remote rejected] main -> main (push declined due to email privacy restrictions)
+
+原因：账号开了 "Block command line pushes that expose my email"，而提交作者是 cj593444633@gmail.com（私密地址）。 不要去网页上关掉这个保护——那是把邮箱公开。正确做法是改用 GitHub 的 noreply 地址：
+
+    ID=$(gh api user -q .id)                  # 本机为 222012664
+    MAIL="${ID}+cj593444633-git@users.noreply.github.com"
+
+    git config --global user.email "$MAIL"    # 或者只改本仓库：git config user.email
+    git commit --amend --reset-author --no-edit   # 已提交的要改写作者
+
+验证：
+
+    $ git log -1 --format='%an <%ae>'
+    cj593444633-git <222012664+cj593444633-git@users.noreply.github.com>
+
+  --global 改的是全局身份，影响所有仓库；本次已改成全局，以后任何机器推 GitHub 都不会再撞 GH007。 只想影响这一个仓库就去掉 --global。
+
+------------------------------------------------------------------------
+
+7. push 与验收
+
+    git add -A
+    git commit -m "arch-hyprland 新机配置：dotfiles + 一键安装 + 手册"
+    git push -u origin main
+    # To https://github.com/cj593444633-git/dotfiles.git
+    #  * [new branch]      main -> main
+    # 分支 'main' 设置为跟踪 'origin/main'
+
+41 MB 走代理，用了约 1 分钟。推送成功不等于同步正确，必须回读远端核对：
+
+    # 1) sha 是否一致
+    git rev-parse HEAD
+    gh api repos/cj593444633-git/dotfiles/commits/main -q .sha
+
+    # 2) 远端文件数
+    gh api "repos/cj593444633-git/dotfiles/git/trees/main?recursive=1" \
+      -q '[.tree[]|select(.type=="blob")]|length'
+    # → 51
+
+    # 3) 敏感文件确实没上去（输出为空才正确）
+    gh api "repos/cj593444633-git/dotfiles/git/trees/main?recursive=1" \
+      -q '[.tree[].path|select(test("tar.gz|mihomo-bundle"))]|.[]'
+
+    # 4) 顶层清单
+    gh api repos/cj593444633-git/dotfiles/contents -q '.[]|"\(.type)\t\(.size)\t\(.name)"'
+
+本次四项全对：远端 main = 本地 25255b6，51 个文件，无 bundle，顶层为 .gitignore / 00-安装说明.txt / 01-一键安装.sh / SHA256SUMS / dotfiles/ / 手册/。
+
+------------------------------------------------------------------------
+
+8. 坑汇总（本机环境特有）
+
+  #   现象                                                               根因                                                            解法
+  --- ------------------------------------------------------------------ --------------------------------------------------------------- ------------------------------------------------------------------------------------------------------
+  1   pacman -S gh 找不到包                                              Arch 包名是 github-cli，gh 只是命令名                           pacman -S github-cli
+  2   ssh -T git@github.com → Connection closed by 198.18.0.97 port 22   mihomo TUN 用 fake-ip 接管，且不上报 22 端口转发，SSH 22 被掐   要么走 HTTPS（本次选择），要么在 ~/.ssh/config 把 github.com 指到 ssh.github.com:443（实测认证通过）
+  3   push 报 GH007                                                      账号开了邮箱隐私保护，提交作者是 gmail 私密地址                 用 <id>+<user>@users.noreply.github.com 改写作者
+  4   写了 .gitignore 但敏感文件照样被推                                 文件早已在索引里，.gitignore 不管已跟踪文件                     git rm --cached <file>
+  5   remote 是 https://github.com                                       建仓库时 URL 填残                                               git remote set-url origin <完整URL>
+
+补充两条经验：
+
+- public 仓库 = 全世界可读。dotfiles 类仓库天然想公开，但代理配置、SSH 私钥、.env、token 文件必须排除。 拿不准就把仓库设 private：gh repo edit --visibility private，再决定要不要放 bundle。
+- 推送前用 git status --short 和 git ls-files | wc -l 对一眼数量，51 个文件里少一个 PDF 这种问题肉眼看不出来。
+
+------------------------------------------------------------------------
+
+9. 以后再同步（日常流程）
+
+源目录（U 盘）已经是 git 工作区，内容变了只需要：
+
+    cd /run/media/chen/Ventoy/arch-hyprland-newmachine/
+    git add -A
+    git commit -m "更新：<改了什么>"
+    git push
+
+从远端取回到新机器：
+
+    gh repo clone cj593444633-git/dotfiles
+    # 或 git clone https://github.com/cj593444633-git/dotfiles.git
+    cd dotfiles && ./bootstrap.sh
+
+新机还需要那份被排除的 mihomo-bundle-*.tar.gz——它只走 U 盘或私聊渠道， 拿到后 dotfiles/proxy/install-mihomo.sh 会消费它。别把它塞进任何 public 仓库。
+
+------------------------------------------------------------------------
+
+10. 速查卡
+
+    sudo pacman -S github-cli            # 装
+    gh auth login                        # 登录（HTTPS）
+    gh auth setup-git                    # git 复用令牌
+    gh auth status && gh api user -q .login   # 验身份
+    git config user.email "<id>+<user>@users.noreply.github.com"   # 防 GH007
+    git rm --cached <敏感文件>            # 从索引摘掉
+    git push -u origin main              # 推
+    gh api repos/<u>/<r>/commits/main -q .sha  # 核对 sha
