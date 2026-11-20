@@ -1,0 +1,15 @@
+[Unit]
+Description=热插拔设备自动挂载 (udisks2, 用户级)
+Documentation=file:%h/.local/bin/udisks-automount.py
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/.local/bin/udisks-automount.py
+Restart=always
+RestartSec=5
+# 通知/DBus 需要会话环境
+PassEnvironment=DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR WAYLAND_DISPLAY DISPLAY
+
+[Install]
+WantedBy=graphical-session.target

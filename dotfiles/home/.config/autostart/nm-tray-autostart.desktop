@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=nm-tray (已被 waybar 网络模块替代，禁用)
+Comment=禁用系统级 /etc/xdg/autostart/nm-tray-autostart.desktop（同文件名 + Hidden=true 即覆盖）
+Exec=nm-tray
+Icon=network-transmit
+Categories=System;Monitor;Qt;
+Hidden=true

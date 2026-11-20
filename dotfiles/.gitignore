@@ -1,0 +1,9 @@
+# 备份与临时产物
+*.bak
+*.bak.*
+*.orig-*
+.dotfiles-backup-*/
+
+# 代理 bundle（含订阅与节点凭据，绝不入库）
+mihomo-bundle*
+*.tar.gz

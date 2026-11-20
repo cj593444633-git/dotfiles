@@ -1,0 +1,128 @@
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans CJK SC", sans-serif;
+    font-size: 14px;
+}
+
+window#waybar {
+    background: rgba(20,20,20,0.85);
+    color: white;
+}
+
+/* ---------- 统一图标：同一字体(MDI) / 同一字号 / 留足 padding ----------
+   Nerd Font 的图标字形墨迹宽度都大于字宽(advance)：
+   14px 时 advance≈8.4px 而墨迹 12~16px，模块一旦没有 padding，
+   溢出的墨迹会被模块自己的裁剪区域切掉（表现为“图标不完整”）。
+   16px 时 advance≈9.6px、墨迹最大约 15px → 每侧至少留 4px。 */
+#custom-apps,
+#custom-emulator,
+#custom-thunar,
+#custom-google-chrome,
+#custom-firefox,
+#custom-power,
+#bluetooth,
+#pulseaudio,
+#network.wifi,
+#network.eth {
+    font-size: 16px;
+    padding: 0 6px;
+}
+
+#network.wifi {
+    color: #89b4fa;
+}
+
+#network.wifi.disconnected {
+    color: #555;
+}
+
+#network.eth {
+    color: #a6e3a1;
+}
+
+#network.eth.linked,
+#network.eth.disconnected {
+    color: #555;
+}
+
+#custom-apps {
+    color: #89b4fa;
+}
+
+#custom-apps:hover {
+    background: #89b4fa;
+    color: black;
+}
+
+#custom-power {
+    color: #f38ba8;
+}
+
+#custom-power:hover {
+    background: #f38ba8;
+    color: black;
+}
+
+#workspaces button {
+    padding: 0 6px;
+    color: white;
+    font-size: 14px;
+    border-radius: 6px;
+    margin: 2px 1px;
+    transition: all 0.2s ease;
+}
+
+#workspaces button:hover {
+    background: rgba(137, 180, 250, 0.2);
+    text-shadow: 0 0 4px rgba(137, 180, 250, 0.5);
+}
+
+#workspaces button.active {
+    background: #89b4fa;
+    color: black;
+    min-width: 24px;
+}
+
+#workspaces button.empty {
+    color: #555;
+}
+
+#workspaces button.urgent {
+    background: #f38ba8;
+    color: black;
+}
+
+#clock,
+#bluetooth,
+#pulseaudio,
+#battery,
+#tray {
+    padding: 0 10px;
+}
+
+#bluetooth {
+    color: #89b4fa;
+}
+
+#bluetooth.on,
+#bluetooth.disconnected,
+#bluetooth.unknown {
+    color: #89b4fa;
+}
+
+#bluetooth.off,
+#bluetooth.no-controller {
+    color: #555;
+}
+
+#bluetooth.connected {
+    color: #a6e3a1;
+}
+
+#bluetooth.disabled {
+    color: #555;
+}
+
+#bluetooth:hover {
+    background: rgba(137, 180, 250, 0.2);
+    border-radius: 6px;
+}

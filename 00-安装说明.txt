@@ -1,0 +1,115 @@
+════════════════════════════════════════════════════════════════════════
+ 新机安装包：Arch + Hyprland 桌面 + mihomo 代理（参考机 chen@X220）
+ 生成日期：2026-11-20　　目标系统：Arch Linux x86_64
+════════════════════════════════════════════════════════════════════════
+
+这个目录里有什么
+────────────────────────────────────────────────────────────────────────
+  00-安装说明.txt            本文件（先看完再动手）
+  01-一键安装.sh             新机上唯一需要跑的命令（root）
+  dotfiles/                  配置仓库（27 个 home 文件 + 安装器 + 包清单 + 文档）
+  mihomo-bundle-*.tar.gz     代理配置快照（含订阅地址与节点凭据 → 别外传、别进 git）
+  手册/
+    Hyprland-Dotfiles-手册.pdf    完整手册（A6 页数 16 页，含验收清单与踩坑）
+    Hyprland-Dotfiles-手册.txt    纯文本版（手机上 grep/看都行）
+    Hyprland-Dotfiles-手册.md     源文件（要改就改这个）
+
+────────────────────────────────────────────────────────────────────────
+ 前置条件（缺一条就会卡住）
+────────────────────────────────────────────────────────────────────────
+  1. 新机已装好 Arch base 系统，能上网（pacman 要下 57 个包，约 1.5 GB）
+     · 网络配好即可（有线/ iwctl 连 WiFi）；不要在这台机器上开 TUN 代理之前配卡
+  2. 已经有普通用户，且在 wheel 组：
+       useradd -m -G wheel,video,audio,seat,input,render -s /bin/bash <用户名>
+       passwd <用户名>            # 然后 visudo 打开 %wheel 那行
+  3. U 盘里的 archlinux-x86_64.iso 已在本 Ventoy 盘上（ventoy/ISO/ 下已有），
+     开机按 F12 选 U 盘 → Ventoy 菜单里选 archlinux-x86_64.iso 进 live 环境
+
+────────────────────────────────────────────────────────────────────────
+ 安装步骤
+────────────────────────────────────────────────────────────────────────
+ 第 0 步：进 live 环境后先挂载 U 盘（Ventoy 分区会被自动挂载，一般在
+          /run/media/<用户名>/Ventoy ，用户名是 live 环境的 archiso）
+
+ 第 1 步：进新装的 Arch（不是 live 环境），插入 U 盘，确认挂载：
+       ls /run/media/$USER/            # 看到 Ventoy 就对了
+       cd /run/media/$USER/Ventoy/arch-hyprland-newmachine
+
+ 第 2 步：自检（不碰系统，几秒）：
+       bash 01-一键安装.sh --self-test
+
+ 第 3 步：开始装（唯一一条命令，会让你装包，耗时长）：
+       sudo bash 01-一键安装.sh --user <你的用户名>
+
+       只想装桌面、不要代理:
+       sudo bash 01-一键安装.sh --user <用户名> --skip-bootstrap   # 仅铺配置
+
+       代理不开 TUN（只留 127.0.0.1:7890，不动全系统流量）:
+       sudo bash 01-一键安装.sh --user <用户名> --tun off
+
+       新机网段和参考机不同（参考机是 192.168.2.0/24）→ 必须给：
+       sudo bash 01-一键安装.sh --user <用户名> --lan-cidr 192.168.1.0/24
+
+ 第 4 步：重启（ly 只在启动时读会话配置，重新登录也行）
+
+ 第 5 步：登录后跑一次（启用用户级 systemd 单元）：
+       cd ~/dotfiles && ./install.sh --enable-units
+
+ 第 6 步：按手册「阶段 5：验收清单」逐条过一遍
+       less ~/dotfiles/docs/新机安装手册.md
+       或看 手册/Hyprland-Dotfiles-手册.txt
+
+────────────────────────────────────────────────────────────────────────
+ 装完你会得到什么
+────────────────────────────────────────────────────────────────────────
+  · Hyprland（lua 配置）+ waybar 状态栏 + kitty + mako 通知 + fcitx5 输入法
+  · ly 显示管理器，会话 = hyprland-uwsm（状态栏/输入法/锁屏/托盘靠它）
+  · 快捷键见 ~/dotfiles/docs/keybinds.md（SUPER 为修饰键）
+  · mihomo 代理：127.0.0.1:7890（mixed），终端 proxyon / proxyoff
+  · 自动挂载 U 盘（udisks-automount）、剪贴板历史（SUPER+SHIFT+V）、锁屏（SUPER+L）
+
+────────────────────────────────────────────────────────────────────────
+ 已知的新机差异（必须自己改的地方）
+────────────────────────────────────────────────────────────────────────
+  · 显示器名：hyprctl monitors -j 看实际名字，改 hyprland.lua 里标了 [本机] 的
+    旋转键位（参考机 LVDS-1/HDMI-A-1/VGA-1）和模拟器/Kodi 钉屏规则
+  · 鼠标：hyprctl devices -j 看名字，改 hl.device({name="epic-mouse-v1"}) 或删掉
+  · 核显：参考机是 Sandy Bridge（LIBVA_DRIVER_NAME=i965 + libva-intel-driver）。
+    新机是较新 Intel 就删掉这行、改装 intel-media-driver；AMD/NVIDIA 直接删
+  · 参考机专属启动项：SUPER+H（Hermes）、SUPER+SHIFT+H（DSH）、
+    waybar 的 custom/emulator（Android 模拟器）—— 新机没有就删
+  · gocryptfs 加密盘挂载在仓库里已注释，要用再打开
+
+────────────────────────────────────────────────────────────────────────
+ 排障（症状 → 原因）
+────────────────────────────────────────────────────────────────────────
+  没有状态栏 / 输入法不起 / 不锁屏 / 托盘空
+      → 会话没被 uwsm 托管。查：systemctl --user is-active wayland-session@hyprland.desktop.target
+        修：sudo ~/dotfiles/system/apply-ly-config.sh --user $USER，然后重启
+  hypridle 起来就死
+      → 缺 ~/.config/hypr/hypridle.conf（本包已带）
+  改了 hyprland.start 钩子里的东西不生效
+      → hyprctl reload 不重跑钩子，必须重新登录
+  状态栏图标缺一半 / 蓝牙空白
+      → 缺 ttf-jetbrains-mono-nerd，或 waybar 0.15 的蓝牙状态键是 on/off
+  快捷键按了没反应
+      → 同键重复绑定（Hyprland 不报错，只有一个生效）
+  sudo 弹不出图形授权
+      → 本机 pkexec 不通，用 ~/.local/bin/root-window.sh <脚本> 开窗口输密码
+  mihomo 起来但没网
+      → 别用纯 http 站点测（经代理返回 502 正常）；curl -x http://127.0.0.1:7890 https://www.youtube.com
+        看是否 200；DNS 在 TUN 模式下是 198.18.0.2，TUN 关了就别装那份 resolved drop-in
+
+────────────────────────────────────────────────────────────────────────
+ 安全提醒
+────────────────────────────────────────────────────────────────────────
+  · mihomo-bundle-*.tar.gz 里有订阅地址、节点、api-secret：
+      权限 600；不要提交 git、不要发群、用完可以删（新机装好后它就没用了）
+  · dotfiles 里没有密钥/浏览器数据/SSH；只有桌面配置与脚本
+  · 本包不含 /etc 加固脚本（~/security-hardening），那套要单独搬
+
+────────────────────────────────────────────────────────────────────────
+ 校验完整性
+────────────────────────────────────────────────────────────────────────
+     cd <本目录> && sha256sum -c SHA256SUMS
+EOF

@@ -1,0 +1,58 @@
+# 桌面必需包（全部来自官方仓库，2026-11-20 在参考机上核对过）
+# 安装：pacman -S --needed $(grep -v '^#' packages/desktop.txt | grep -v '^$')
+# 说明写在行尾，grep 取包名时用：awk '!/^#/ && NF {print $1}'
+
+# ── 合成器与会话 ────────────────────────────────────────────────
+hyprland                     # 0.56.x：lua 配置 API（本仓库配置按 0.56.2 写）
+hypridle                     # 空闲锁屏（必须配 hypridle.conf，否则 46ms 退出）
+hyprlock                     # 锁屏界面
+uwsm                         # 会话管理器：拉起 graphical-session.target（见 docs/踩坑记录.md 第一条）
+xdg-desktop-portal
+xdg-desktop-portal-gtk       # Settings/FileChooser 等默认后端
+xdg-desktop-portal-hyprland  # 截屏/投屏
+hyprpolkitagent              # polkit 认证弹窗
+ly                           # 文本模式显示管理器（配置见 system/ly-config.ini）
+
+# ── 状态栏 / 启动器 / 通知 ──────────────────────────────────────
+waybar                       # 官方 0.15.0，与参考机 waybar-git 同版本
+hyprlauncher                 # SUPER+R 启动器
+wofi                         # dmenu：剪贴板历史、电源菜单、wifi 菜单、快捷键速查
+mako                         # 通知守护（配置：顶部居中、下移 36px 避开状态栏）
+
+# ── 终端 / 文件管理 ────────────────────────────────────────────
+kitty                        # SUPER+Q 终端、一键下载脚本都弹它
+thunar                       # SUPER+SHIFT+E
+yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide   # SUPER+E 的 yazi 全家桶
+neovim                       # bashrc 的 EDITOR
+
+# ── 输入法 ─────────────────────────────────────────────────────
+fcitx5 fcitx5-chinese-addons fcitx5-configtool fcitx5-gtk fcitx5-qt
+                             # 环境变量在 environment.d/im.conf + hyprland.lua 的 hl.env
+
+# ── 网络 / 蓝牙 ────────────────────────────────────────────────
+networkmanager               # nmtui、nmcli；状态栏两个 network 模块读它
+bluez bluez-utils blueman    # blueman-manager（SUPER+B）+ 托盘
+
+# ── 音频 / 亮度 / 媒体 ─────────────────────────────────────────
+pipewire pipewire-pulse wireplumber
+brightnessctl                # SUPER+ESC 关屏、Fn 亮度键
+playerctl                    # 媒体键
+
+# ── 截屏 / 剪贴板 ──────────────────────────────────────────────
+grim slurp wl-clipboard cliphist
+
+# ── 字体（状态栏/终端全靠带图标字形的 Nerd Font）────────────────
+ttf-jetbrains-mono-nerd      # 缺它 = 状态栏图标空白（不是配置错）
+noto-fonts noto-fonts-cjk noto-fonts-emoji ttf-dejavu
+
+# ── 主题 / Qt ──────────────────────────────────────────────────
+qt6ct gtk3 gtk4 breeze
+
+# ── 内核/驱动相关（按硬件取舍）─────────────────────────────────
+libva-intel-driver           # [Sandy Bridge 及更老] 参考机的 i965 驱动
+# intel-media-driver         # 较新的 Intel 核显（Gen8+）改用这个，二选一
+xorg-xwayland                # 跑 X11 程序 / 浏览器 --ozone-platform=x11
+
+# ── 脚本依赖 ───────────────────────────────────────────────────
+python                       # udisks-automount.py
+curl iproute2                # chrome-optimized.sh 探代理（可选）

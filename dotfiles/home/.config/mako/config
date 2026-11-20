@@ -1,0 +1,15 @@
+# 基础样式配置
+font=monospace 10
+background-color=#1e1e2e
+text-color=#cdd6f4
+border-size=2
+border-color=#89b4fa
+border-radius=5
+progress-color=#89b4fa
+
+# 通知位置：顶部居中，下移避开 waybar（waybar 高 32px）
+anchor=top-center
+outer-margin=36,0,0,0
+
+# 通知停留时间（毫秒）
+default-timeout=5000

@@ -1,0 +1,222 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 32,
+    "spacing": 20,
+
+    "modules-left": [
+        "custom/apps",
+        "custom/emulator",
+	"custom/thunar", 
+	"custom/google-chrome",
+	"custom/firefox",
+        "hyprland/workspaces",
+        "hyprland/window"
+    ],
+
+    "modules-center": [
+        "clock"
+    ],
+
+    "modules-right": [
+        "network#wifi",
+        "network#eth",
+        "bluetooth",
+        "pulseaudio",
+        "tray",
+        "custom/power"
+    ],
+
+
+    "custom/apps": {
+        "format": "󰀻",
+        "tooltip": true,
+        "tooltip-format": "左键: 应用菜单 | 右键: 快捷键速查",
+        "on-click": "wofi --show drun",
+        "on-click-right": "$HOME/.local/bin/waybar-keybinds.sh"
+    },
+
+    "custom/emulator": {
+        "format": "󰀲",
+        "tooltip": true,
+        "tooltip-format": "Android 模拟器 (QtDemo34)\n左键: 启动 | 右键: 关闭\n1366x768 / 中文 / KVM+GPU 加速",
+        "on-click": "$HOME/code/qt-android-demo/start-emulator.sh",
+        "on-click-right": "$HOME/code/qt-android-demo/stop-emulator.sh"
+    },
+
+    "custom/google-chrome": {
+"format": "󰊯",
+"tooltip": true,
+"tooltip-format": "Google-chrome",
+"on-click": "$HOME/.local/bin/chrome-optimized.sh"
+},
+
+"custom/thunar": {
+"format": "󰝰",  
+"tooltip": true,
+"tooltip-format": "thunar",
+"on-click": "thunar"
+},
+
+
+"custom/firefox": {
+    "format": "󰈹",
+    "tooltip": true,
+    "tooltip-format": "打开firefox",
+    // 点击图标直接启动firefox
+    "on-click": "/usr/lib/firefox/firefox",
+    // 右键点击直接打开firefox无痕模式
+    "on-click-right": "/usr/lib/firefox/firefox",
+    // 当firefox窗口存在时，图标高亮变色
+    "if": "hyprctl clients | grep -q firefox"
+},
+
+
+    "custom/power": {
+        "format": "󰐥",
+        "tooltip": false,
+        "on-click": "$HOME/.local/bin/waybar-power.sh"
+    },
+
+
+    "hyprland/workspaces": {
+        "format": "{name} {windows}",
+        "format-icons": {
+            "empty": "󰝦",
+            "default": "󰧞",
+            "active": "󰝥"
+        },
+        "all-outputs": true,
+        "persistent-workspaces": {
+            "*": 5
+        },
+        "window-rewrite-default": "󰖯",
+        "window-rewrite": {
+            "class<firefox>": "󰈹",
+            "class<org.kde.dolphin>": "󰝰",
+            "class<Hermes>": "󰚩",
+            "class<org.kde.konsole>": "󰆍",
+            "class<konsole>": "󰆍",
+            "class<kitty>": "󰄛",
+            "class<Alacritty>": "󰆍",
+            "class<wezterm>": "󰆍",
+            "class<foot>": "󰆍",
+            "class<google-chrome>": "󰊯",
+            "class<google-chrome-beta>": "󰊯",
+            "class<chromium>": "󰊯",
+            "class<brave-browser>": "󰊯",
+            "class<Code>": "󰨞",
+            "class<code>": "󰨞",
+            "class<code-oss>": "󰨞",
+            "class<discord>": "󰙯",
+            "class<Spotify>": "󰓇",
+            "class<thunderbird>": "󰇯",
+            "class<Slack>": "󰒱",
+            "class<TelegramDesktop>": "󰒊",
+            "class<org.telegram.desktop>": "󰒊",
+            "class<steam>": "󰓓",
+            "class<Steam>": "󰓓",
+            "class<vlc>": "󰕼",
+            "class<mpv>": "󰕼",
+            "class<celluloid>": "󰕼",
+            "class<gimp>": "󰃣",
+            "class<obs-studio>": "󰕧",
+            "class<virt-manager>": "󰆤",
+            "class<libreoffice>": "󰈙",
+            "class<thunar>": "󰝰", 
+	    "class<org.gnome.Nautilus>": "󰝰",
+            "class<nvim>": "󰆍",
+            "class<Neovide>": "󰆍",
+            "class<Zathura>": "󰈦",
+            "class<evince>": "󰈦",
+            "class<org.gnome.Evince>": "󰈦",
+            "class<pavucontrol>": "󰕾",
+            "class<blueman-manager>": "󰂯",
+            "class<eog>": "󰋩",
+            "class<org.keepassxc.KeePassXC>": "󰌆",
+            "class<org.qbittorrent.qBittorrent>": "󰁅",
+            "class<Transmission-gtk>": "󰁅",
+            "class<calibre>": "󰂺",
+            "class<org.gnome.Calculator>": "󰃬",
+            "class<signal>": "󰛷",
+            "class<ferdium>": "󰒱",
+            "class<vesktop>": "󰙯",
+            "class<webcord>": "󰙯",
+            "class<obsidian>": "󰠓",
+            "class<Logseq>": "󰠓",
+            "class<figma>": "󰀁",
+            "class<Figma>": "󰀁",
+            "class<insomnia>": "󰋣",
+            "class<postman>": "󰋣",
+            "class<docker>": "󰡨",
+            "class<Docker>": "󰡨",
+            "class<org.gimp.GIMP>": "󰃣"
+        }
+    },
+
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 50
+    },
+
+    "clock": {
+        "format": "{:%Y-%m-%d %H:%M %A}",
+        "locale": "zh_CN.UTF-8"
+    },
+    "network#wifi": {
+        "interface": "wlp*",
+        "interval": 5,
+        "format-wifi": "{icon}  {essid}",
+        "format-linked": "󰖩  {ifname}",
+        "format-disconnected": "󰖪",
+        "format-icons": ["󰤟", "󰤢", "󰤥", "󰤨"],
+        "tooltip-format-wifi": "{essid}  {signalStrength}%\n{ifname}  {ipaddr}/{cidr}\n↓{bandwidthDownBits}  ↑{bandwidthUpBits}",
+        "tooltip-format-disconnected": "WiFi 未连接 —— 左键选网络 / 右键 nmtui",
+        "on-click": "$HOME/.local/bin/wifi-menu.sh",
+        "on-click-right": "kitty -e nmtui",
+        "on-click-middle": "nmcli radio wifi toggle"
+    },
+
+    "network#eth": {
+        "interface": "en*",
+        "interval": 5,
+        "format-ethernet": "󰈀  {ifname}",
+        "format-linked": "󰌙  {ifname}",
+        "format-disconnected": "󰌙",
+        "tooltip-format-ethernet": "{ifname}  网关 {gwaddr}\n{ipaddr}/{cidr}\n↓{bandwidthDownBits}  ↑{bandwidthUpBits}",
+        "tooltip-format-disconnected": "网线未连接",
+        "on-click": "kitty -e nmtui"
+    },
+
+    "bluetooth": {
+        "format": "{icon}",
+        "format-connected": "{icon} {device_alias}",
+        "format-icons": {
+            "disabled": "󰂲",
+            "no-controller": "󰂲",
+            "off": "󰂲",
+            "on": "󰂯",
+            "disconnected": "󰂯",
+            "unknown": "󰂯",
+            "default": "󰂯",
+            "connected": "󰂱",
+            "pairing": "󰂰"
+        },
+        "tooltip-format": "{controller_alias} ({controller_address})\n{num_connections} 个设备已连接\n左键: 蓝牙管理器 | 右键: 关闭蓝牙",
+        "tooltip-format-connected": "{controller_alias} ({controller_address})\n\n{device_enumerate}",
+        "on-click": "blueman-manager",
+        "on-click-right": "bluetoothctl power off"
+    },
+
+    "pulseaudio": {
+        "format": "  {volume}%",
+        "format-muted": "󰝟 Muted"
+    },
+
+    "battery": {
+        "format": "󰁹  {capacity}%"
+    },
+    "tray": {
+        "spacing": 8
+    }
+}

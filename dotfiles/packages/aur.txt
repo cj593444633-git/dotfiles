@@ -1,0 +1,14 @@
+# AUR 包（可选）—— 桌面本身不需要任何 AUR 包，以下都是"跟参考机一致"才装的
+# 安装：yay -S --needed waybar-git   （或 paru）
+
+# waybar-git                  # 参考机用的就是它（0.15.0.r1085）；官方 waybar 0.15.0 等价，优先用官方
+# nerd-fonts-complete         # 想要全套 Nerd Font 图标（体积大）；桌面只需要 ttf-jetbrains-mono-nerd
+
+# ── 参考机上与本桌面无关、但一起装了的 AUR 包（按需）────────────
+# google-chrome               # chrome-optimized.sh 启动的就是它
+# microsoft-edge-stable-bin
+# mihomo-bin                  # 参考机的系统级代理；没有代理的机器不要装
+# nm-tray                     # 已被 waybar 原生 network 模块替代（autostart 里 Hidden=true）
+# marktext-bin vnote-bin wps-office-cn wps-office-mui-zh-cn
+# kodi-addon-pvr-iptvsimple kodi-addon-inputstream-ffmpegdirect shaka-packager-bin
+# filezilla-server luckybackup pacseek yay-bin
